@@ -55,20 +55,42 @@ def index():
 @app.route('/create_user', methods=['POST'])
 def create_user():
     # Do Validation Here
+    isValid = True
 
     fname = request.form['first_name']
     lname = request.form['last_name']
     email = request.form['email']
     password = request.form['password']
 
+    if len(fname) < 1:
+        isValid = False
+        flash('Please fill in first name')
+
+    if len(lname) < 1:
+        isValid = False
+        flash('Please fill in last name')
+
+    if len(email) < 1:
+        isValid = False
+        flash('Please fill in email')
+
+    if len(password) < 6:
+        isValid = False
+        flash('Please fill in password, must be at least 6 characters')
+
+
+
     # If Valid, add to DB
-    new_user = User(first_name = fname, last_name = lname, email = email, password = password)
-    db.session.add(new_user)
-    db.session.commit()
-    
-    this_user = User.query.filter_by(email = email).all()
-    session['user_id'] = this_user[0].id
-    return redirect('/dashboard')
+    if isValid:
+        new_user = User(first_name = fname, last_name = lname, email = email, password = password)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        this_user = User.query.filter_by(email = email).all()
+        session['user_id'] = this_user[0].id
+        return redirect('/dashboard')
+    else:
+        return redirect('/')
 
 
 @app.route('/login')
@@ -100,17 +122,31 @@ def dashboard():
 
 @app.route('/create_ride', methods=["POST"])
 def create_ride():
+    isValid = True
     rto = request.form['ride_to']
     rfrom = request.form['ride_from']
     if session['user_id']:
         uid = session['user_id']
     else:
         uid = 0
-    new_ride = Ride(start_point = rfrom, end_point= rto, user_id = uid)
-    db.session.add(new_ride)
-    db.session.commit()
-    return redirect('/dashboard')
 
+
+    if len(rto) < 1:
+        isValid = False
+        flash("Please enter a valid destination")
+
+    if len(rfrom) < 1:
+        isValid = False
+        flash("Please enter a valid pickup point")
+
+
+    if isValid:
+        new_ride = Ride(start_point = rfrom, end_point= rto, user_id = uid)
+        db.session.add(new_ride)
+        db.session.commit()
+        return redirect('/dashboard')
+    else:
+        return redirect('/')
 
 
 
